@@ -1,3 +1,8 @@
-# gabriel-araujo-practice1
+# Gabriel-Araujo-hw2
 
-I implemented just the main features(login, sign up, secret page and image upload). The logged user is stored in the session in order to show the username in some pages of the application. The image upload feature just alows jpg, jpeg, gif and png. I also added some simple style with bootstrap just to make the pages nicier.
+Implemented features:
+1. Authentication form in '/'.
+2. Users can create a new account clicking on 'Create an Account' in the home page. The username and the password(with hashing) are stored in MongoDb.
+3. There is a default user(username: user | password: 123).
+4. If the authentication was successful, the user can see a profile page.
+5. In the profile page the users can logout and change their password.
