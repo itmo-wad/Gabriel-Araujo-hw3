@@ -99,10 +99,13 @@ def changePassword():
             flash('Invalid New Password', 'danger')
             return redirect(request.url)
         if checkPassword(username, oldPassword):
+            if oldPassword == newPassword:
+                flash('New Password must be different from Old Password', 'danger')
+                return redirect(request.url)
             db.users.update_one({"username": username}, {"$set": {"password": generate_password_hash(newPassword)}})
             flash('Password Changed', 'success')
             return redirect(url_for('myProfile'))
-        flash('Password Change Error', 'danger')
+        flash('Invalid Old Password', 'danger')
         return redirect(request.url)
 
 if __name__ == '__main__':
