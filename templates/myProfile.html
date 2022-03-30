@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="card mx-auto col-8 col-md-6 col-lg-4 my-5 d-flex p-3">
+<div class="card mx-auto col-8 col-md-6 col-lg-4 mb-4 d-flex p-3">
   <img src="{{ profilePic }}" class="mb-2 img-thumbnail mx-auto" style="width: 125px; height: 125px;" alt="...">
-  <h5 class="mb-3 text-center">Welcome {{ username }}</h5>
-  <p class="text-center">This is your special area, we are working on something special for you here!</p>
-  <ul class="list-unstyled">
-    <li><a href="{{ url_for('changePassword') }}">Change Password</a></li>
-    <li><a href="/newPost">New Post</a></li>
-    <li><a href="/posts">All Posts</a></li>
-    <li><a href="/logout">Logout</a></li>
+  <h5 class="mb-3 text-center">Welcome {{ username }}!</h5>
+  <ul class="nav flex-column text-center">
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('myPosts') }}">My Posts</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('changePassword') }}">Change Password</a>
+    </li>
   </ul>
 </div>
 {% endblock %}

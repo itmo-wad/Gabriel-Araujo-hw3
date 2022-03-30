@@ -1,8 +1,7 @@
-# Gabriel-Araujo-hw2
+# Gabriel-Araujo-hw3
 
 Implemented features:
-1. Authentication form in '/'.
-2. Users can create a new account clicking on 'Create an Account' in the home page. The username and the password(with hashing) are stored in MongoDb.
-3. There is a default user(username: user | password: 123).
-4. If the authentication was successful, the user can see a profile page.
-5. In the profile page the users can logout and change their password.
+1. There is a default user(username: user | password: 123)
+2. Authenticated users can publish a post with title and content. These posts can be private or public. 
+3. Any user can see the public posts.
+4. Logged users can also change password, see his/her own posts(public/private) and logout.

@@ -37,6 +37,11 @@ def getProfilePic():
             return f"{user['profile_pic']}"
     return 'static/icon.png'
 
+def getPostVisibility():
+    if request.form.get("visibility") == 'public':
+        return True
+    return False
+
 @app.route('/', methods=["GET", "POST"])
 def login():
     if request.method == "GET":
@@ -69,8 +74,8 @@ def signup():
             flash('Invalid Password', 'danger')
             return redirect(request.url)
         db.users.insert_one({"username": username, "password": generate_password_hash(password), "profile_pic": ''})
-        print(f"{username} - {password} SALVO")
-        return redirect('/login')
+        flash('Account Created!', 'success')
+        return redirect('/')
 
 @app.route('/profile')
 def myProfile():
@@ -113,28 +118,74 @@ def changePassword():
 
 @app.route('/newPost', methods=["GET", "POST"])
 def newPost():
+    username = getLoggedUsername()
+    if username == '':
+        flash('Please, login first', 'danger')
+        return redirect(url_for('login'))
     if request.method == "GET":
         return render_template("newPost.html")
     else:
-        username = getLoggedUsername()
-        if username == '':
-            return redirect(url_for('login'))
+        visibility = getPostVisibility()
         postTitle = request.form.get("postTitle")
         postContent = request.form.get("postContent")
         if postTitle == '':
-            flash('Invalid Title', 'danger')
-            return redirect(request.url)
+            flash('The title of the post is empty', 'danger')
+            return redirect(url_for('newPost', previousContent = postContent))
         if postContent == '':
             flash('The content of the post is empty', 'danger')
-            return redirect(request.url)
-        db.posts.insert_one({"title": postTitle, "content": postContent, "owner": session['logged'], "public": True})
+            return redirect(url_for('newPost',  previousTitle = postTitle))
+        db.posts.insert_one({"title": postTitle, "content": postContent, "owner": username, "public": visibility})
         flash('Posted!', 'success')
         return redirect(url_for('myProfile'))
 
+@app.route('/posts/update/<postId>', methods=["GET", "POST"])
+def updatePost(postId):
+    username = getLoggedUsername()
+    if username == '':
+        flash('Please, login first', 'danger')
+        return redirect(url_for('login'))
+    if request.method == "GET":
+        post = db.posts.find_one(ObjectId(postId))
+        if post:
+            if post['owner'] != username:
+                flash('You are not the owner of that post', 'danger')
+                return redirect(url_for('myProfile'))
+            return render_template("updatePost.html", postId=post['_id'], previousTitle = post['title'], previousContent = post['content'], public = post['public'])
+        flash('Post not found', 'danger')
+        return redirect(url_for('myProfile'))
+    else:
+        postId = request.form.get("postId")
+        postTitle = request.form.get("postTitle")
+        postContent = request.form.get("postContent")
+        visibility = getPostVisibility()
+        post = db.posts.find_one(ObjectId(postId))
+        if post and post['owner'] != username:
+            flash('You are not the owner of that post', 'danger')
+            return redirect(url_for('myProfile'))
+        if postTitle == '':
+            flash('The title of the post is empty', 'danger')
+            return render_template("updatePost.html", postId=postId, previousTitle = post['title'], previousContent = postContent, public = visibility)
+        if postContent == '':
+            flash('The content of the post is empty', 'danger')
+            return render_template("updatePost.html", postId=postId, previousTitle = postTitle, previousContent = post['content'], public = visibility)
+        db.posts.update_one({"_id": ObjectId(postId)}, {"$set": {"title": postTitle, "content": postContent, "public": visibility}})
+        flash('Post Updated', 'success')
+        return redirect(url_for('posts'))
+
 @app.route('/posts')
 def posts():
-    posts = db.posts.find()
-    return render_template("posts.html", posts=posts)
+    username = getLoggedUsername()
+    posts = db.posts.find({"public": True})
+    return render_template("posts.html", posts=posts, username=username)
+
+@app.route('/myPosts')
+def myPosts():
+    username = getLoggedUsername()
+    if username != '':
+        posts = db.posts.find({"owner": username})
+        return render_template("posts.html", posts=posts, username=username)
+    return redirect(url_for('login'))
+
 
 if __name__ == '__main__':
     db.users.drop()
