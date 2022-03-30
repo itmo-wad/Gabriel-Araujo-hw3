@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card mx-auto border-secondary col-8 my-5 d-flex p-3">
+  <h2 class="text-center">New Post</h2>
+  <form class="card-body mx-auto flex-column mb-0" action="/newPost" method="POST">
+    <input class="mb-2 form-control" type="text" name="postTitle" placeholder="Title">
+    <div class="form-group">
+      <label for="postContent">Your Post:</label>
+      <textarea class="mb-4  form-control" name="postContent" id="postContent" rows="3"></textarea>
+    </div>
+    <div class="d-flex">
+      <button class="mx-auto btn btn-outline-secondary" type="submit">Post</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -21,11 +21,14 @@ def checkPassword(username, password):
 
 def getLoggedUsername():
     if 'logged' in session:
-        user = db.users.find_one(ObjectId(session['logged']))
+        user = findById(session['logged'])
         if user:
             return user['username']
         session.pop('logged', None)
     return ''
+
+def findById(id):
+    return db.users.find_one(ObjectId(id))
 
 def getProfilePic():
     user = db.users.find_one(ObjectId(session['logged']))
@@ -107,6 +110,31 @@ def changePassword():
             return redirect(url_for('myProfile'))
         flash('Invalid Old Password', 'danger')
         return redirect(request.url)
+
+@app.route('/newPost', methods=["GET", "POST"])
+def newPost():
+    if request.method == "GET":
+        return render_template("newPost.html")
+    else:
+        username = getLoggedUsername()
+        if username == '':
+            return redirect(url_for('login'))
+        postTitle = request.form.get("postTitle")
+        postContent = request.form.get("postContent")
+        if postTitle == '':
+            flash('Invalid Title', 'danger')
+            return redirect(request.url)
+        if postContent == '':
+            flash('The content of the post is empty', 'danger')
+            return redirect(request.url)
+        db.posts.insert_one({"title": postTitle, "content": postContent, "owner": session['logged'], "public": True})
+        flash('Posted!', 'success')
+        return redirect(url_for('myProfile'))
+
+@app.route('/posts')
+def posts():
+    posts = db.posts.find()
+    return render_template("posts.html", posts=posts)
 
 if __name__ == '__main__':
     db.users.drop()

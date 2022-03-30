@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+  {% for post in posts %}
+    <div class="card mx-auto border-secondary col-8 my-3 d-flex p-3">
+      <h2 class="text-center text-capitalize">{{ post.title }}</h2>
+      <div class="card-body mx-auto flex-column mb-0 text-justify">
+        {{ post.content }}
+      </div>
+    </div>
+  {% endfor %}
+{% endblock %}
