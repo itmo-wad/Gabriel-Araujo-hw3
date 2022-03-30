@@ -2,17 +2,27 @@
 {% block content %}
 <div class="card mx-auto border-secondary col-8 mb-4 d-flex p-3">
   <h2 class="text-center">Update Post</h2>
-  <form class="card-body mx-auto flex-column mb-0" action='/posts/update/{{postId}}' method="POST">
+  <form class="card-body mx-auto flex-column mb-0 col-8" action='/posts/update/{{postId}}' method="POST">
     <input type="hidden" value="{{postId}}" name="postId">
-    <div class="form-floating mb-2">
+    <div class="form-floating mb-3">
       <input type="text" class="form-control" id="postTitle" name="postTitle" placeholder="Title" value="{{ previousTitle }}">
       <label for="floatingInput">Title</label>
     </div>
-    <div class="form-floating mb-2">
-      <textarea class="form-control" name="postContent" placeholder="Write your post here" id="postContent">{{previousContent}}</textarea>
+    <div class="form-floating mb-3">
+      <textarea class="form-control" name="postContent" placeholder="Write your post here" id="postContent" style="height: 150px">{{previousContent}}</textarea>
       <label for="postContent">Your Post</label>
     </div>
-    <div class="d-flex justify-content-around">
+    <div class="row mb-3">
+      <div class="d-grid col-6">
+        <label for="backColor" class="form-label text-center">Background Color</label>
+        <input type="color" class="form-control form-control-color mx-auto" id="backColor" name="bgColor" value="{{ bgColor }}" title="Choose your color">
+      </div>
+      <div class="d-grid col-6">
+        <label for="textColor" class="form-label text-center">Text Color</label>
+        <input type="color" class="form-control form-control-color mx-auto mt-auto" id="textColor" name="textColor" value="{{ textColor }}" title="Choose your color" style="height: 40px;">
+      </div>
+    </div>
+    <div class="d-flex justify-content-center mb-4">
       <div class="form-check form-check-inline">
         <input class="form-check-input" type="radio" id="visibility1" name="visibility" value="public" {{ 'checked' if public else ''}}>
         <label class="form-check-label" for="visibility1">

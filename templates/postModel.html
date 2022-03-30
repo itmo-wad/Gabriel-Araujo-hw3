@@ -1,6 +1,5 @@
-<div class="card mx-auto border-secondary col-10 col-lg-8 my-3 d-flex p-3">
+<div class="card mx-auto border-secondary col-10 col-lg-8 my-3 d-flex p-3" style="background-color: {{ post.bgColor }}; color: {{ post.textColor }};">
   <h2 class="text-center text-capitalize">
-    
     {{ post.title }}
   </h2>
   <div class="card-body mx-auto flex-column mb-0 text-justify">
@@ -9,24 +8,28 @@
   <hr class="mt-0 mb-2">
   <div class="d-flex justify-content-between">
     <div class="d-flex align-items-center mx-3">
-      <small class="mb-0 text-secondary">Published by 
-        <strong>
-          {{ post.owner }}
-          {% if not post.public %}
-            <i class="ml-2 fa-solid fa-lock text-warning"></i>
-          {% endif %}
-        </strong>
-      </small>
+      <span class="bagde rounded-pill bg-light px-2 py-1">
+        <small class="mb-0">Published by 
+          <strong>
+            {{ post.owner }}
+            {% if not post.public %}
+              <i class="ml-2 fa-solid fa-lock text-warning"></i>
+            {% endif %}
+          </strong>
+        </small>
+      </span>
     </div>
     {% if post.owner == username %}
       <div class="dropdown my-auto mx-3">
         <button class="btn btn-link text-decoration-none py-0" type="button" id="defaultDropdown" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false">
-          <i class="fa-solid fa-ellipsis bigIcon text-secondary"></i>
+          <i class="fa-solid fa-ellipsis bigIcon" style="color: {{ post.textColor }};"></i>
         </button>
         <ul class="dropdown-menu" aria-labelledby="defaultDropdown">
           <li><a class="dropdown-item" href="/posts/update/{{ post._id }}">Edit</a></li>
-          <li><a class="dropdown-item" href="/posts/delete/{{ post._id }}">Delete</a></li>
-        </ul>
+          <form class="mb-0" action="/posts/delete/{{ post._id }}" method="post">
+            <li><button class="dropdown-item" type="submit">Delete</button></li>
+          </form>
+          </ul>
       </div>
     {% endif %}
   </div>

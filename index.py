@@ -1,9 +1,12 @@
+from turtle import bgcolor
 from flask import Flask, request, render_template, url_for, redirect, flash, session
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
 from bson.objectid import ObjectId
+from faker import Faker
 
+faker = Faker()
 client = MongoClient('localhost', 27017)
 db = client.wad
 app = Flask(__name__)
@@ -125,16 +128,18 @@ def newPost():
     if request.method == "GET":
         return render_template("newPost.html")
     else:
-        visibility = getPostVisibility()
         postTitle = request.form.get("postTitle")
         postContent = request.form.get("postContent")
+        bgColor = request.form.get("bgColor")
+        textColor = request.form.get("textColor")
+        visibility = getPostVisibility()
         if postTitle == '':
             flash('The title of the post is empty', 'danger')
             return redirect(url_for('newPost', previousContent = postContent))
         if postContent == '':
             flash('The content of the post is empty', 'danger')
             return redirect(url_for('newPost',  previousTitle = postTitle))
-        db.posts.insert_one({"title": postTitle, "content": postContent, "owner": username, "public": visibility})
+        db.posts.insert_one({"title": postTitle, "content": faker.text(), "owner": username, "textColor": textColor, "bgColor": bgColor, "public": visibility})
         flash('Posted!', 'success')
         return redirect(url_for('myProfile'))
 
@@ -150,13 +155,15 @@ def updatePost(postId):
             if post['owner'] != username:
                 flash('You are not the owner of that post', 'danger')
                 return redirect(url_for('myProfile'))
-            return render_template("updatePost.html", postId=post['_id'], previousTitle = post['title'], previousContent = post['content'], public = post['public'])
+            return render_template("updatePost.html", postId=post['_id'], previousTitle = post['title'], previousContent = post['content'], public = post['public'], bgColor = post['bgColor'], textColor = post['textColor'])
         flash('Post not found', 'danger')
         return redirect(url_for('myProfile'))
     else:
         postId = request.form.get("postId")
         postTitle = request.form.get("postTitle")
         postContent = request.form.get("postContent")
+        bgColor = request.form.get("bgColor")
+        textColor = request.form.get("textColor")
         visibility = getPostVisibility()
         post = db.posts.find_one(ObjectId(postId))
         if post and post['owner'] != username:
@@ -164,13 +171,30 @@ def updatePost(postId):
             return redirect(url_for('myProfile'))
         if postTitle == '':
             flash('The title of the post is empty', 'danger')
-            return render_template("updatePost.html", postId=postId, previousTitle = post['title'], previousContent = postContent, public = visibility)
+            return render_template("updatePost.html", postId=postId, previousTitle = post['title'], previousContent = postContent, public = visibility, bgColor = bgColor, textColor = textColor)
         if postContent == '':
             flash('The content of the post is empty', 'danger')
-            return render_template("updatePost.html", postId=postId, previousTitle = postTitle, previousContent = post['content'], public = visibility)
+            return render_template("updatePost.html", postId=postId, previousTitle = postTitle, previousContent = post['content'], public = visibility, bgColor = bgColor, textColor = textColor)
         db.posts.update_one({"_id": ObjectId(postId)}, {"$set": {"title": postTitle, "content": postContent, "public": visibility}})
         flash('Post Updated', 'success')
         return redirect(url_for('posts'))
+
+@app.route('/posts/delete/<postId>', methods=["POST"])
+def deletePost(postId):
+    username = getLoggedUsername()
+    if username == '':
+        flash('Please, login first', 'danger')
+        return redirect(url_for('login'))
+    post = db.posts.find_one(ObjectId(postId))
+    if post:
+        if post['owner'] != username:
+            flash('You are not the owner of that post', 'danger')
+            return redirect(url_for('myProfile'))
+        db.posts.delete_one({"_id": ObjectId(postId)})
+        flash('Post Deleted!', 'success')
+        return redirect(url_for('myProfile'))
+    flash('Post not found', 'danger')
+    return redirect(url_for('myProfile'))
 
 @app.route('/posts')
 def posts():
@@ -189,9 +213,6 @@ def myPosts():
 
 if __name__ == '__main__':
     db.users.drop()
-    from faker import Faker
-
-    faker = Faker()
 
     db.users.insert_one({"username": "user", "password": generate_password_hash('123'), "profile_pic": ''})
 
