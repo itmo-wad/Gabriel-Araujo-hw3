@@ -1,16 +1,23 @@
-from turtle import bgcolor
-from flask import Flask, request, render_template, url_for, redirect, flash, session
+from flask import Flask, request, render_template, url_for, redirect, flash, session, send_from_directory
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from pymongo import MongoClient
+import os
 from bson.objectid import ObjectId
 from faker import Faker
+
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
 
 faker = Faker()
 client = MongoClient('localhost', 27017)
 db = client.wad
 app = Flask(__name__)
 app.secret_key = 'super secret key'
+app.config['UPLOAD_FOLDER'] = './upload'
+app.config['SECRET_KEY'] = 'super secret key'
 auth = HTTPBasicAuth()
 
 
@@ -37,8 +44,11 @@ def getProfilePic():
     user = db.users.find_one(ObjectId(session['logged']))
     if user:
         if user['profile_pic'] != '':
-            return f"{user['profile_pic']}"
+            return url_for('uploadedFile', filename=user['profile_pic'])
     return 'static/icon.png'
+
+def allowedFile(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def getPostVisibility():
     if request.form.get("visibility") == 'public':
@@ -118,6 +128,39 @@ def changePassword():
             return redirect(url_for('myProfile'))
         flash('Invalid Old Password', 'danger')
         return redirect(request.url)
+
+@app.route('/updateProfilePic', methods=['GET', 'POST'])
+def uploadProfilePic():
+    username = getLoggedUsername()
+    if username == '':
+        flash('Please, login first', 'danger')
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file part', 'danger')
+            return redirect(request.url)
+            
+        file = request.files['file']
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return redirect(request.url)
+            
+        if not allowedFile(file.filename):
+            flash('Invalid file extension', 'danger')
+            return redirect(request.url)
+            
+        if file and allowedFile(file.filename):
+            extension = file.filename.rsplit('.', 1)[1].lower()
+            filename = secure_filename(session['logged'] + '.' + extension)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            db.users.update_one({"username": username}, {"$set": {"profile_pic": filename}})
+            flash('Your profile pic was successfully updated!', 'success')
+            return redirect(url_for('myProfile'))
+    return render_template("uploadPic.html")
+       
+@app.route('/uploads/<filename>')
+def uploadedFile(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/newPost', methods=["GET", "POST"])
 def newPost():
